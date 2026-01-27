@@ -8,7 +8,7 @@
 #define GPIO_SDA 14
 #define GPIO_SCL 15
 
-/* ================= VARIAVEIS DE CONTROLE ================= */
+/* ================= VARIAVEIS DE CONTROLE =================a */
 
 extern bool exibir_OLED;
 
