@@ -55,7 +55,7 @@ void task_leitura_serial_receiver(void *pvParameters) {
 
             limpeza_dados_entrada(buffer);
 
-            printf("Comando recebido: %s\n\n", buffer);
+            printf("\nComando recebido: %s\n\n", buffer);
             
             verificar_dado_em_json_especifico(buffer, json_remetente, json_char.resp_remetente);
             verificar_dado_em_json_especifico(buffer, json_destinatario, json_char.resp_destinatario);
@@ -188,6 +188,7 @@ void task_exibir_infos_OLED(void *pvParameters){
     }
 }
 
+
 // ------------------ FUNÇÕES UNICAS DE SENSORES & ATUADORES ----------------------------- (completa e testada)
 
 bool luz_normal(int pino_GPIO, char *acao){
@@ -244,7 +245,7 @@ void limpeza_dados_entrada(char *buffer){  // func para limpar os dados de entra
     int cont = 0;
 
     for (int i = 0; buffer[i] != '\0'; i++) {
-        if (buffer[i] != ' ') {
+        if (buffer[i] != ' ' && buffer[i] != '\r' && buffer[i] != '\n' ) {
             dest[cont++] = buffer[i];
         }
     }

@@ -8,6 +8,9 @@
 #define GPIO_SDA 14
 #define GPIO_SCL 15
 
+#define UART_RX 0  // RECEBEDOR <----------------- definir ainda
+#define UART_TX 1 // TRANSMISSOR   <----------------- definir ainda
+
 /* ================= VARIAVEIS DE CONTROLE =================a */
 
 extern bool exibir_OLED;
