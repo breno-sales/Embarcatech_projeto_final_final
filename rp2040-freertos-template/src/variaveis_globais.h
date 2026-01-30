@@ -3,13 +3,17 @@
 
 #include <stdbool.h>
 #include <stdio.h>
+#include "hardware/uart.h"
+
 #define Max_buffer_size 1024
 
 #define GPIO_SDA 14
 #define GPIO_SCL 15
 
-#define UART_RX 0  // RECEBEDOR <----------------- definir ainda
-#define UART_TX 1 // TRANSMISSOR   <----------------- definir ainda
+#define UART_ID uart0
+#define UART_BAUDRATE 115200
+#define UART_RX_PIN 0  // RECEBEDOR <----------------- definir ainda
+#define UART_TX_PIN 1 // TRANSMISSOR   <----------------- definir ainda
 
 /* ================= VARIAVEIS DE CONTROLE =================a */
 

@@ -8,6 +8,7 @@
 #include "hardware/i2c.h"
 #include "ssd1306.h"
 #include "functions.h"
+#include "hardware/uart.h"
 
 // ------------------ FUNÇÕES TASK  ----------------------------- (completa e testada)
 
@@ -36,6 +37,112 @@ void task_leitura_serial_receiver(void *pvParameters) {
 
             if (c == PICO_ERROR_TIMEOUT)
                 continue;
+
+            if (c == '\r' || c == '\n') {
+                buffer[idx] = '\0';
+                break;
+            }            
+
+            buffer[idx++] = (char)c;
+
+            if (c == '}'){
+                buffer[idx] = '\0';
+                break;
+            }
+        }
+
+        /* ================= PROCESSAMENTO ================= */
+        if (idx > 0) {
+
+            limpeza_dados_entrada(buffer);
+
+            printf("\nComando recebido: %s\n\n", buffer);
+            
+            verificar_dado_em_json_especifico(buffer, json_remetente, json_char.resp_remetente);
+            verificar_dado_em_json_especifico(buffer, json_destinatario, json_char.resp_destinatario);
+            verificar_dado_em_json_especifico(buffer, json_tipo_sensor, json_char.resp_tipo_sensor);
+            verificar_dado_em_json_especifico(buffer, json_nome_sensor, json_char.resp_nome_sensor);
+            verificar_dado_em_json_especifico(buffer, json_acao, json_char.resp_acao);
+            verificar_dado_em_json_especifico(buffer, json_gpio_pino, json_char.resp_gpio_pino);
+            json_int.resp_gpio_pino = verificar_porta_acao_especifica(buffer, json_gpio_pino);
+
+            retorno_requisicao_json("master_central", &json_char);
+
+            // ----------------------------print das variaveis para acompanhamento------------------
+            printf(
+                "\n\nJSON_CHAR:\n"
+                "remetente: %s\n"
+                "destinatario: %s\n"
+                "tipo sensor: %s\n"
+                "nome sensor: %s\n"
+                "acao: %s\n"
+                "GPIO: %s\n"
+                "Retorno: %s\n",
+                json_char.resp_remetente,
+                json_char.resp_destinatario,
+                json_char.resp_tipo_sensor,
+                json_char.resp_nome_sensor,
+                json_char.resp_acao,
+                json_char.resp_gpio_pino,
+                json_char.resp_retorno
+            );
+            
+            montagem_estrutura_de_envio(&json_char, &json_int);
+
+            printf(
+                "\n\nJSON_INT:\n"
+                "remetente: %i\n"
+                "destinatario: %i\n"
+                "tipo sensor: %i\n"
+                "nome sensor: %i\n"
+                "acao: %i\n"
+                "GPIO: %i\n"
+                "Retorno: %i\n",
+                json_int.resp_remetente,
+                json_int.resp_destinatario,
+                json_int.resp_tipo_sensor,
+                json_int.resp_nome_sensor,
+                json_int.resp_acao,
+                json_int.resp_gpio_pino,
+                json_int.resp_retorno
+            );
+
+            //-----------------------------------------------------------------------         
+
+
+            if(strstr(json_char.resp_retorno,"success")){
+                resp_orquestrador = orquestrador_funcionalidades(&json_char, &json_int);
+                if(resp_orquestrador){
+                    // chamar função de enviar retorno
+                    printf("\nMensagem de envio de retorno\n");
+                } else {
+                    // chamar funcao de enviar retorno com erro especifico
+                    printf("\nMensagem de envio de retorno com erro especifico\n");
+                }
+            }
+            exibir_OLED = true;
+        }
+
+        vTaskDelay(pdMS_TO_TICKS(200));
+    }
+}
+
+void task_leitura_uart_receiver(void *pvParameters) {
+
+    static bool resp_orquestrador = false;
+    for (;;) {
+        idx = 0;
+        memset(buffer, 0, sizeof(buffer));
+
+        /* ================= ESPERA INÍCIO ================= */
+        while (idx < sizeof(buffer) - 1) {
+            
+            if (!uart_is_readable(UART_ID)) {
+                vTaskDelay(pdMS_TO_TICKS(10));
+                continue;
+            }
+
+            c = uart_getc(UART_ID);
 
             if (c == '\r' || c == '\n') {
                 buffer[idx] = '\0';
@@ -332,6 +439,16 @@ void setup_gpios(void)
     gpio_set_function(GPIO_SCL, GPIO_FUNC_I2C);
     gpio_pull_up(GPIO_SDA);
     gpio_pull_up(GPIO_SCL);
+}
+
+void uart_init_custom(void){
+    uart_init(UART_ID, UART_BAUDRATE);
+
+    gpio_set_function(UART_TX_PIN, GPIO_FUNC_UART);
+    gpio_set_function(UART_RX_PIN, GPIO_FUNC_UART);
+
+    uart_set_format(UART_ID, 8, 1, UART_PARITY_NONE);
+    uart_set_fifo_enabled(UART_ID, true);
 }
 
 // ------------------------------ FUNÇÕES DE ORQUESTRAMENTO E MENSAGERIA -----------------------

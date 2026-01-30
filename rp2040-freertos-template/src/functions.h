@@ -12,6 +12,8 @@ void task_luz_normal(void *pino_GPIO);
 
 void task_leitura_serial_receiver(void *pvParameters);
 
+void task_leitura_uart_receiver(void *pvParameters);
+
 void task_exibir_infos_OLED(void *pvParameters);
 
 /* ======================= ATUADORES ======================= */
@@ -27,6 +29,8 @@ void limpeza_dados_entrada(char *buffer);
 int verificar_porta_acao_especifica(char *buffer,char *comando);
 
 void setup_gpios(void);
+
+void uart_init_custom(void);
 
 bool verificar_dado_em_json_especifico(char *buffer, char *comando, char *saida);
 
