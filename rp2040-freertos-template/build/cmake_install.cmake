@@ -1,4 +1,4 @@
-# Install script for directory: C:/Users/25sal/OneDrive/Desktop/Embarcatech_projeto_final/rp2040-freertos-template
+# Install script for directory: C:/Users/25sal/OneDrive/Desktop/Embarcatech_projeto_final_final/rp2040-freertos-template
 
 # Set the install prefix
 if(NOT DEFINED CMAKE_INSTALL_PREFIX)
@@ -39,9 +39,9 @@ endif()
 
 if(NOT CMAKE_INSTALL_LOCAL_ONLY)
   # Include the install script for each subdirectory.
-  include("C:/Users/25sal/OneDrive/Desktop/Embarcatech_projeto_final/rp2040-freertos-template/build/FREERTOS_KERNEL/cmake_install.cmake")
-  include("C:/Users/25sal/OneDrive/Desktop/Embarcatech_projeto_final/rp2040-freertos-template/build/pico-sdk/cmake_install.cmake")
-  include("C:/Users/25sal/OneDrive/Desktop/Embarcatech_projeto_final/rp2040-freertos-template/build/src/cmake_install.cmake")
+  include("C:/Users/25sal/OneDrive/Desktop/Embarcatech_projeto_final_final/rp2040-freertos-template/build/FREERTOS_KERNEL/cmake_install.cmake")
+  include("C:/Users/25sal/OneDrive/Desktop/Embarcatech_projeto_final_final/rp2040-freertos-template/build/pico-sdk/cmake_install.cmake")
+  include("C:/Users/25sal/OneDrive/Desktop/Embarcatech_projeto_final_final/rp2040-freertos-template/build/src/cmake_install.cmake")
 
 endif()
 
@@ -53,5 +53,5 @@ endif()
 
 string(REPLACE ";" "\n" CMAKE_INSTALL_MANIFEST_CONTENT
        "${CMAKE_INSTALL_MANIFEST_FILES}")
-file(WRITE "C:/Users/25sal/OneDrive/Desktop/Embarcatech_projeto_final/rp2040-freertos-template/build/${CMAKE_INSTALL_MANIFEST}"
+file(WRITE "C:/Users/25sal/OneDrive/Desktop/Embarcatech_projeto_final_final/rp2040-freertos-template/build/${CMAKE_INSTALL_MANIFEST}"
      "${CMAKE_INSTALL_MANIFEST_CONTENT}")

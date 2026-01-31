@@ -3,6 +3,7 @@
 /* ================= VARIAVEIS DE CONTROLE ================= */
 
 bool exibir_OLED = false;
+bool enviar_dados_UART = false;
 
 m_json_char json_char;
 m_json_int json_int;
@@ -47,7 +48,7 @@ const size_t n_dict_retorno = sizeof(dict_retorno) / sizeof(dict_retorno[0]);
 /* ================= JSON ================= */
 int idx = 0;
 int c = 0;
-char buffer[Max_buffer_size];
+char buffer[Max_buffer_size] = "\0";
 
 char *json_remetente     = "\"remetente\":";
 char *json_destinatario  = "\"destinatario\":";

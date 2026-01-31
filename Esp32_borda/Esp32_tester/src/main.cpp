@@ -4,23 +4,10 @@
 #include "variaveis_globais.h"
 
 
-struct m_json
-{
-    char resp_remetente[30];
-    char resp_destinatario[30];
-    char resp_gpio_pino[30];
-    char resp_tipo_sensor[30];
-    char resp_nome_sensor[30];
-    char resp_acao[30];
-    char resp_retorno[256];
-
-    int resp_gpio_pino_int;
-} modelo_json;
-
-
 void setup() {
     Serial.begin(115200);
-    delay(5000);
+    Serial2.begin(UART2_BAUD, SERIAL_8N1, UART2_RX, UART2_TX);
+    delay(3000);
     
     iniciando_wifi();
 
@@ -31,3 +18,4 @@ void setup() {
 void loop() {
     execucao_wifi_em_loop();
 }
+

@@ -129,107 +129,14 @@ void task_leitura_serial_receiver(void *pvParameters) {
 
 void task_leitura_uart_receiver(void *pvParameters) {
 
-    static bool resp_orquestrador = false;
     for (;;) {
-        idx = 0;
-        memset(buffer, 0, sizeof(buffer));
 
-        /* ================= ESPERA INÍCIO ================= */
-        while (idx < sizeof(buffer) - 1) {
-            
-            if (!uart_is_readable(UART_ID)) {
-                vTaskDelay(pdMS_TO_TICKS(10));
-                continue;
-            }
-
-            c = uart_getc(UART_ID);
-
-            if (c == '\r' || c == '\n') {
-                buffer[idx] = '\0';
-                break;
-            }            
-
-            buffer[idx++] = (char)c;
-
-            if (c == '}'){
-                buffer[idx] = '\0';
-                break;
-            }
+        // só chama quando houver algo na UART
+        if (uart_is_readable(UART_ID)) {
+            receber_mensagem_uart();
         }
 
-        /* ================= PROCESSAMENTO ================= */
-        if (idx > 0) {
-
-            limpeza_dados_entrada(buffer);
-
-            printf("\nComando recebido: %s\n\n", buffer);
-            
-            verificar_dado_em_json_especifico(buffer, json_remetente, json_char.resp_remetente);
-            verificar_dado_em_json_especifico(buffer, json_destinatario, json_char.resp_destinatario);
-            verificar_dado_em_json_especifico(buffer, json_tipo_sensor, json_char.resp_tipo_sensor);
-            verificar_dado_em_json_especifico(buffer, json_nome_sensor, json_char.resp_nome_sensor);
-            verificar_dado_em_json_especifico(buffer, json_acao, json_char.resp_acao);
-            verificar_dado_em_json_especifico(buffer, json_gpio_pino, json_char.resp_gpio_pino);
-            json_int.resp_gpio_pino = verificar_porta_acao_especifica(buffer, json_gpio_pino);
-
-            retorno_requisicao_json("master_central", &json_char);
-
-            // ----------------------------print das variaveis para acompanhamento------------------
-            printf(
-                "\n\nJSON_CHAR:\n"
-                "remetente: %s\n"
-                "destinatario: %s\n"
-                "tipo sensor: %s\n"
-                "nome sensor: %s\n"
-                "acao: %s\n"
-                "GPIO: %s\n"
-                "Retorno: %s\n",
-                json_char.resp_remetente,
-                json_char.resp_destinatario,
-                json_char.resp_tipo_sensor,
-                json_char.resp_nome_sensor,
-                json_char.resp_acao,
-                json_char.resp_gpio_pino,
-                json_char.resp_retorno
-            );
-            
-            montagem_estrutura_de_envio(&json_char, &json_int);
-
-            printf(
-                "\n\nJSON_INT:\n"
-                "remetente: %i\n"
-                "destinatario: %i\n"
-                "tipo sensor: %i\n"
-                "nome sensor: %i\n"
-                "acao: %i\n"
-                "GPIO: %i\n"
-                "Retorno: %i\n",
-                json_int.resp_remetente,
-                json_int.resp_destinatario,
-                json_int.resp_tipo_sensor,
-                json_int.resp_nome_sensor,
-                json_int.resp_acao,
-                json_int.resp_gpio_pino,
-                json_int.resp_retorno
-            );
-
-            //-----------------------------------------------------------------------         
-
-
-            if(strstr(json_char.resp_retorno,"success")){
-                resp_orquestrador = orquestrador_funcionalidades(&json_char, &json_int);
-                if(resp_orquestrador){
-                    // chamar função de enviar retorno
-                    printf("\nMensagem de envio de retorno\n");
-                } else {
-                    // chamar funcao de enviar retorno com erro especifico
-                    printf("\nMensagem de envio de retorno com erro especifico\n");
-                }
-            }
-            exibir_OLED = true;
-        }
-
-        vTaskDelay(pdMS_TO_TICKS(200));
+        vTaskDelay(pdMS_TO_TICKS(5));
     }
 }
 
@@ -295,6 +202,15 @@ void task_exibir_infos_OLED(void *pvParameters){
     }
 }
 
+void task_uart_transmitir(void *pvParameters){ // ENVIAR DADOS DE RETORNO DE JSON_CHAR para UART
+    
+    if(enviar_dados_UART){
+        uart_puts(UART_ID,json_char.resp_retorno);
+        printf("\nmsg enviada pela UART: %s\n",json_char.resp_retorno);
+
+        enviar_dados_UART = false;
+    }
+}
 
 // ------------------ FUNÇÕES UNICAS DE SENSORES & ATUADORES ----------------------------- (completa e testada)
 
@@ -662,5 +578,100 @@ void retorno_requisicao_json(const char *origin, m_json_char *json_c){
 }
 
 
+// ------------------ FUNÇÕES UART  ------------------------------------------
+
+void uart_read_exact(uart_inst_t *uart, uint8_t *buf, size_t len) {
+    size_t received = 0;
+
+    while (received < len) {
+        if (uart_is_readable(uart)) {
+            buf[received++] = uart_getc(uart);
+        } else {
+            tight_loop_contents(); // evita busy-wait agressivo
+        }
+    }
+}
+
+void receber_mensagem_uart(void) {
+
+    uint16_t len = 0;
+
+    // 1️⃣ Lê o tamanho (2 bytes)
+    uart_read_exact(UART_ID, (uint8_t *)&len, sizeof(len));
+
+    // proteção básica
+    if (len == 0 || len >= Max_buffer_size) {
+        // printf("Erro: tamanho inválido (%u)\n", len);
+        return;
+    }
+
+    // 2️⃣ Lê o payload
+    static char buffer[Max_buffer_size];
+    uart_read_exact(UART_ID, (uint8_t *)buffer, len);
+
+    // transforma em string
+    buffer[len] = '\0';
+
+    /* ================= PROCESSAMENTO ================= */
+    printf("string completa: %s\n", buffer);
+
+    limpeza_dados_entrada(buffer);
+
+    printf("Comando recebido: %s\n\n", buffer);
+
+    verificar_dado_em_json_especifico(buffer, json_remetente, json_char.resp_remetente);
+    verificar_dado_em_json_especifico(buffer, json_destinatario, json_char.resp_destinatario);
+    verificar_dado_em_json_especifico(buffer, json_tipo_sensor, json_char.resp_tipo_sensor);
+    verificar_dado_em_json_especifico(buffer, json_nome_sensor, json_char.resp_nome_sensor);
+    verificar_dado_em_json_especifico(buffer, json_acao, json_char.resp_acao);
+    verificar_dado_em_json_especifico(buffer, json_gpio_pino, json_char.resp_gpio_pino);
+    json_int.resp_gpio_pino = verificar_porta_acao_especifica(buffer, json_gpio_pino);
+
+    retorno_requisicao_json("master_central", &json_char);
+
+    printf(
+                "\n\nJSON_CHAR:\n"
+                "remetente: %s\n"
+                "destinatario: %s\n"
+                "tipo sensor: %s\n"
+                "nome sensor: %s\n"
+                "acao: %s\n"
+                "GPIO: %s\n"
+                "Retorno: %s\n",
+                json_char.resp_remetente,
+                json_char.resp_destinatario,
+                json_char.resp_tipo_sensor,
+                json_char.resp_nome_sensor,
+                json_char.resp_acao,
+                json_char.resp_gpio_pino,
+                json_char.resp_retorno
+            );
+            
+    montagem_estrutura_de_envio(&json_char, &json_int);
+
+    printf(
+        "\n\nJSON_INT:\n"
+        "remetente: %i\n"
+        "destinatario: %i\n"
+        "tipo sensor: %i\n"
+        "nome sensor: %i\n"
+        "acao: %i\n"
+        "GPIO: %i\n"
+        "Retorno: %i\n",
+        json_int.resp_remetente,
+        json_int.resp_destinatario,
+        json_int.resp_tipo_sensor,
+        json_int.resp_nome_sensor,
+        json_int.resp_acao,
+        json_int.resp_gpio_pino,
+        json_int.resp_retorno
+    );
+
+    exibir_OLED = true;
+}
+
+
 
 // ------------------ FUNÇÕES EM DESENVOLVIMENTO  ------------------------------------------
+
+

@@ -1,4 +1,4 @@
-# Install script for directory: C:/Users/25sal/OneDrive/Desktop/Embarcatech_projeto_final/rp2040-freertos-template/lib/FreeRTOS-Kernel/portable/ThirdParty/GCC/RP2040
+# Install script for directory: C:/Users/25sal/OneDrive/Desktop/Embarcatech_projeto_final_final/rp2040-freertos-template/lib/FreeRTOS-Kernel/portable/ThirdParty/GCC/RP2040
 
 # Set the install prefix
 if(NOT DEFINED CMAKE_INSTALL_PREFIX)

@@ -93,7 +93,7 @@ rule CXX_EXECUTABLE_LINKER__rp2040-freertos-template_Release
 # Rule for re-running cmake.
 
 rule RERUN_CMAKE
-  command = C:\Users\25sal\.pico-sdk\cmake\v3.29.9\bin\cmake.exe --regenerate-during-build -SC:\Users\25sal\OneDrive\Desktop\Embarcatech_projeto_final\rp2040-freertos-template -BC:\Users\25sal\OneDrive\Desktop\Embarcatech_projeto_final\rp2040-freertos-template\build
+  command = C:\Users\25sal\.pico-sdk\cmake\v3.29.9\bin\cmake.exe --regenerate-during-build -SC:\Users\25sal\OneDrive\Desktop\Embarcatech_projeto_final_final\rp2040-freertos-template -BC:\Users\25sal\OneDrive\Desktop\Embarcatech_projeto_final_final\rp2040-freertos-template\build
   description = Re-running CMake...
   generator = 1
 

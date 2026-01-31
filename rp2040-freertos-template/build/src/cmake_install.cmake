@@ -1,4 +1,4 @@
-# Install script for directory: C:/Users/25sal/OneDrive/Desktop/Embarcatech_projeto_final/rp2040-freertos-template/src
+# Install script for directory: C:/Users/25sal/OneDrive/Desktop/Embarcatech_projeto_final_final/rp2040-freertos-template/src
 
 # Set the install prefix
 if(NOT DEFINED CMAKE_INSTALL_PREFIX)

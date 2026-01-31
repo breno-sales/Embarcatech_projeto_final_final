@@ -13,6 +13,7 @@ void uart_send_buffer(const char *buffer) {
     if (!buffer || buffer[0] == '\0') return;
 
     static char buffer_final[Max_buffer_size];
+    static uint16_t len = strlen(buffer);
 
     // limpa o buffer
     buffer_final[0] = '\0';
@@ -21,18 +22,14 @@ void uart_send_buffer(const char *buffer) {
     strncpy(buffer_final, buffer, Max_buffer_size - 2);
     buffer_final[Max_buffer_size - 2] = '\0';
 
-    // garante '}'
-    size_t len = strlen(buffer_final);
-    if (len == 0 || buffer_final[len - 1] != '}') {
-        strcat(buffer_final, "}");
-    }
-
-    // usa a função EXISTENTE (sem alterar)
-    limpeza_dados_entrada(buffer_final);
-
-    // envia via UART
+    // envia pro console USB
     Serial.write((const uint8_t *)buffer_final, strlen(buffer_final));
     Serial.write('\n');
+
+    // envia via UART
+    Serial2.write((uint8_t *)&len, sizeof(len));
+    delay(100);
+    Serial2.write((uint8_t *)buffer, len);
 }
 
 // ================================= FUNÇOES DE ATUADORES =====================================
@@ -103,20 +100,16 @@ void execucao_wifi_em_loop(void){
                 buffer[len] = '}';
                 buffer[len +1] = '\0';
 
-                Serial.println("Recebido do cliente:");
+                Serial.println("\nRecebido do cliente:");
                 Serial.println(buffer);
 
                 limpeza_dados_entrada(buffer);
 
                 Serial.printf("\nApos limpeza: %s\n",buffer);
 
+                uart_send_buffer(buffer);
 
-
-                // /* Resposta */
-                if(buffer[len -1] == '}'){
-                    client.print("\n\nMensagem completa recebida\n");
-                    Serial.println("Mensagem enviada: Mensagem completa recebida");  
-                }
+                client.print("\n\nMensagem completa recebida\n");
                 
             }
 

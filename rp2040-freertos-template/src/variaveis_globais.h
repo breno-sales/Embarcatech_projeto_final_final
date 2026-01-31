@@ -14,13 +14,14 @@
 #define UART_BAUDRATE 115200
 #define UART_RX_PIN 0  // RECEBEDOR <----------------- definir ainda
 #define UART_TX_PIN 1 // TRANSMISSOR   <----------------- definir ainda
+#define UART_TIMEOUT_US 3000
 
 /* ================= VARIAVEIS DE CONTROLE =================a */
 
 extern bool exibir_OLED;
+extern bool enviar_dados_UART;
 
-typedef struct 
-{
+typedef struct {
     char resp_remetente[30];
     char resp_destinatario[30];
     char resp_gpio_pino[30];
@@ -33,8 +34,7 @@ typedef struct
 
 extern m_json_char json_char;
 
-typedef struct 
-{
+typedef struct {
     int resp_remetente;            // MAPEAR OS REMETENTES [ 1 - SERVIDOR ; 2 - MASTER CENTRAL ; 3 - MASTER LOCAL 1 ....]
     int resp_destinatario;         // MAPEAR OS DESTINATARIOS [ 1 - SERVIDOR ; 2 - MASTER CENTRAL ; 3 - MASTER LOCAL 1 ....]
     int resp_gpio_pino;            // PINO SIMPLES

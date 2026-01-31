@@ -4,6 +4,8 @@
 #include <string.h>
 #include "pico/stdlib.h"
 #include "hardware/i2c.h"
+#include "hardware/gpio.h"
+#include "hardware/uart.h"
 
 #include "variaveis_globais.h"
 #include "functions.h"
@@ -32,6 +34,55 @@ int main()
     vTaskStartScheduler(); // Depois que o Scheduler começa, nada mais é lido no main()
 
 
+
+    // while(1){
+
+        // ---------------ENVIO -------------------------------------------
+        // const char *msg = "enviando dados da RP2040";
+
+        // uart_puts(UART_ID,msg);
+
+        // printf("msg enviada\n");
+        
+        // sleep_ms(1000);
+
+        //--------------------- RECEBIMENTO 1 POR 1 ------------------------------------
+        // while (uart_is_readable(UART_ID)) {
+        //     char c = uart_getc(UART_ID);
+            
+        //     printf("recebido: %c\n",c);
+        // }
+        // sleep_ms(10);
+
+        // ------------------------ RECEBIMENTO EM LOTE  -------------------------
+
+       
+        // char buffer[Max_buffer_size];
+        // int idx = 0;
+
+        // while (uart_is_readable(UART_ID)) {
+        //     char c = uart_getc(UART_ID);
+
+        //     // delimitadores de fim de mensagem
+        //     if (c == '\n' || c == '\r') {
+        //         break;
+        //     }
+
+        //     if (idx < Max_buffer_size - 1) {
+        //         buffer[idx++] = c;
+        //     }
+        // }
+
+        // buffer[idx] = '\0';
+
+        // if (idx > 0) {
+        //     printf("string completa: %s\n", buffer);
+        // }
+
+        // idx = 0;  // prepara para próxima mensagem
+        // sleep_ms(10);
+        
+    // }
 
 }
 

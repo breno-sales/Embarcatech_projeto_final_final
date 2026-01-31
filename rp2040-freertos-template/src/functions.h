@@ -14,6 +14,8 @@ void task_leitura_serial_receiver(void *pvParameters);
 
 void task_leitura_uart_receiver(void *pvParameters);
 
+void task_uart_transmitir(void *pvParameters);
+
 void task_exibir_infos_OLED(void *pvParameters);
 
 /* ======================= ATUADORES ======================= */
@@ -34,7 +36,7 @@ void uart_init_custom(void);
 
 bool verificar_dado_em_json_especifico(char *buffer, char *comando, char *saida);
 
-/* ======================= JSON / RETORNO ======================= */
+/* ======================= JSON / RETORNO / UART ======================= */
 
 void retorno_requisicao_json(const char *origin, m_json_char *json_c);
 
@@ -43,6 +45,10 @@ void limpar_m_json_char(m_json_char *json_c);
 void limpar_m_json_int(m_json_int *json_i);
 
 void montagem_estrutura_de_envio(m_json_char *json_c,m_json_int *json_i);
+
+void uart_read_exact(uart_inst_t *uart, uint8_t *buf, size_t len);
+
+void receber_mensagem_uart(void);
 
 
 #endif /* FUNCTIONS_H */
