@@ -347,17 +347,17 @@ bool verificar_dado_em_json_especifico(char *buffer, char *comando, char *saida)
     }
 }
 
-void setup_gpios(void) 
+void setup_init_i2c1(void) 
 {
 
-    i2c_init(i2c1, 400000);
+    i2c_init(I2C_PORT, 100 * 1000);
     gpio_set_function(GPIO_SDA, GPIO_FUNC_I2C);
     gpio_set_function(GPIO_SCL, GPIO_FUNC_I2C);
     gpio_pull_up(GPIO_SDA);
     gpio_pull_up(GPIO_SCL);
 }
 
-void uart_init_custom(void){
+void setup_init_uart_custom(void){
     uart_init(UART_ID, UART_BAUDRATE);
 
     gpio_set_function(UART_TX_PIN, GPIO_FUNC_UART);
@@ -672,6 +672,29 @@ void receber_mensagem_uart(void) {
 
 
 
-// ------------------ FUNÇÕES EM DESENVOLVIMENTO  ------------------------------------------
+// ------------------ FUNÇÕES DE TESTE  ------------------------------------------
 
+void ler_endereco_i2c(){
+
+    uint8_t dummy = 0x00;
+    
+    printf("Buscando dispositivos...\n");
+
+        for (uint8_t addr = 0x08; addr <= 0x77; addr++) {
+            int ret = i2c_write_blocking(
+                I2C_PORT,
+                addr,
+                &dummy,
+                1,
+                false
+            );
+
+            if (ret == 1) {
+                printf("✔ Dispositivo encontrado em: 0x%02X\n", addr);
+            }
+        }
+
+        printf("Scan finalizado.\n\n");
+        sleep_ms(3000);
+}
 

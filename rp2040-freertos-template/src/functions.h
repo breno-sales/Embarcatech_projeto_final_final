@@ -30,9 +30,9 @@ void limpeza_dados_entrada(char *buffer);
 
 int verificar_porta_acao_especifica(char *buffer,char *comando);
 
-void setup_gpios(void);
+void setup_init_i2c1(void);
 
-void uart_init_custom(void);
+void setup_init_uart_custom(void);
 
 bool verificar_dado_em_json_especifico(char *buffer, char *comando, char *saida);
 
@@ -50,5 +50,8 @@ void uart_read_exact(uart_inst_t *uart, uint8_t *buf, size_t len);
 
 void receber_mensagem_uart(void);
 
+/* ======================= FUNÇÕES DE TESTE ======================= */
+
+void ler_endereco_i2c(void);
 
 #endif /* FUNCTIONS_H */

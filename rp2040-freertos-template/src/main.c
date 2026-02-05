@@ -17,8 +17,9 @@
 int main()
 {
     stdio_init_all();
-    setup_gpios();
-    uart_init_custom();
+    setup_init_i2c1();
+    setup_init_uart_custom();
+
 
     limpar_m_json_char(&json_char);
     limpar_m_json_int(&json_int);
@@ -27,62 +28,16 @@ int main()
     printf("iniciando...\n");
 
     
-    xTaskCreate(task_leitura_uart_receiver, "Leitura_uart_rx", 4096, NULL, 1, NULL);    
+    // xTaskCreate(task_leitura_uart_receiver, "Leitura_uart_rx", 4096, NULL, 1, NULL);    
     // xTaskCreate(task_leitura_serial_receiver, "Leitura_Serial_usb", 4096, NULL, 1, NULL);
-    xTaskCreate(task_exibir_infos_OLED, "task_exibir_infos_OLED", 4096, NULL, 2, NULL);
+    // xTaskCreate(task_exibir_infos_OLED, "task_exibir_infos_OLED", 4096, NULL, 2, NULL);
     
-    vTaskStartScheduler(); // Depois que o Scheduler começa, nada mais é lido no main()
+    // vTaskStartScheduler(); // Depois que o Scheduler começa, nada mais é lido no main()
 
-
-
-    // while(1){
-
-        // ---------------ENVIO -------------------------------------------
-        // const char *msg = "enviando dados da RP2040";
-
-        // uart_puts(UART_ID,msg);
-
-        // printf("msg enviada\n");
+    while (true) {
         
-        // sleep_ms(1000);
+    }
 
-        //--------------------- RECEBIMENTO 1 POR 1 ------------------------------------
-        // while (uart_is_readable(UART_ID)) {
-        //     char c = uart_getc(UART_ID);
-            
-        //     printf("recebido: %c\n",c);
-        // }
-        // sleep_ms(10);
-
-        // ------------------------ RECEBIMENTO EM LOTE  -------------------------
-
-       
-        // char buffer[Max_buffer_size];
-        // int idx = 0;
-
-        // while (uart_is_readable(UART_ID)) {
-        //     char c = uart_getc(UART_ID);
-
-        //     // delimitadores de fim de mensagem
-        //     if (c == '\n' || c == '\r') {
-        //         break;
-        //     }
-
-        //     if (idx < Max_buffer_size - 1) {
-        //         buffer[idx++] = c;
-        //     }
-        // }
-
-        // buffer[idx] = '\0';
-
-        // if (idx > 0) {
-        //     printf("string completa: %s\n", buffer);
-        // }
-
-        // idx = 0;  // prepara para próxima mensagem
-        // sleep_ms(10);
-        
-    // }
 
 }
 
