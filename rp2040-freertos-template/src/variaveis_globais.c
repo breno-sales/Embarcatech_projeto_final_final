@@ -60,3 +60,12 @@ char *json_acao          = "\"acao\":";
 
 /* ================= OLED ================= */
 
+
+// ==================== SENSORES ========================
+
+float aht10_umidade = 0;
+float aht10_temperatura = 0;
+
+float bh1750_lux = 0;
+float bh1750_percent = 0;
+

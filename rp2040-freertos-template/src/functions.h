@@ -8,8 +8,6 @@
 
 /* ======================= TASKS ======================= */
 
-void task_luz_normal(void *pino_GPIO);
-
 void task_leitura_serial_receiver(void *pvParameters);
 
 void task_leitura_uart_receiver(void *pvParameters);
@@ -17,6 +15,8 @@ void task_leitura_uart_receiver(void *pvParameters);
 void task_uart_transmitir(void *pvParameters);
 
 void task_exibir_infos_OLED(void *pvParameters);
+
+void task_ler_sensores(void *pvParameters);
 
 /* ======================= ATUADORES ======================= */
 
@@ -53,5 +53,25 @@ void receber_mensagem_uart(void);
 /* ======================= FUNÇÕES DE TESTE ======================= */
 
 void ler_endereco_i2c(void);
+
+void aht10_init(void);
+
+bool aht10_read(float *temperature, float *humidity);
+
+int calcula_tempo(int tempo, int tipo);
+
+float aht10_get_temperatura(void);
+
+float aht10_get_humidade(void);
+
+bool bh1750_init(void);
+
+bool bh1750_read_raw(uint16_t *raw);
+
+bool bh1750_read_lux(float *lux);
+
+float bh1750_lux_to_percent(float lux);
+
+float bh1750_get_lux_percent();
 
 #endif /* FUNCTIONS_H */

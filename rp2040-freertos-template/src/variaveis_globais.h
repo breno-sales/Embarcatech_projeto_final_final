@@ -8,10 +8,21 @@
 
 #define Max_buffer_size 1024
 
+// ======================= I2C E ENDEREÇOS ===============================================
 #define I2C_PORT i2c1
 #define GPIO_SDA 2
 #define GPIO_SCL 3
 
+#define addr_ldr            0x23
+#define addr_distancia      0x29
+#define addr_temp_press     0x76
+#define addr_humidade_temp  0x38
+
+#define BH1750_LUX_DIVISOR       1.2f
+#define BH1750_MAX_LUX           65535.0f
+
+
+// ======================= UART ===============================================
 #define UART_ID uart0
 #define UART_BAUDRATE 115200
 #define UART_RX_PIN 0  // RECEBEDOR 
@@ -80,6 +91,15 @@ extern char *json_tipo_sensor;
 extern char *json_nome_sensor;
 extern char *json_acao;
 
+
+
+// ==================== SENSORES ========================
+
+extern float aht10_umidade;
+extern float aht10_temperatura;
+
+extern float bh1750_lux;
+extern float bh1750_percent;
 
 /* ================= Debug ================= */
 #define DEBUG_printf printf

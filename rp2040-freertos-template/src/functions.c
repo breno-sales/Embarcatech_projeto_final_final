@@ -12,18 +12,6 @@
 
 // ------------------ FUNÇÕES TASK  ----------------------------- (completa e testada)
 
-void task_luz_normal(void *pino_GPIO){   
-
-    const int LED_PIN = (int) pino_GPIO; 
-    gpio_init(LED_PIN);
-    gpio_set_dir(LED_PIN, GPIO_OUT);
-
-    while (true) {
-        gpio_put(LED_PIN, !gpio_get(LED_PIN));
-        printf("deu certo\n");
-    }
-}
-
 void task_leitura_serial_receiver(void *pvParameters) {
 
     static bool resp_orquestrador = false;
@@ -212,7 +200,30 @@ void task_uart_transmitir(void *pvParameters){ // ENVIAR DADOS DE RETORNO DE JSO
     }
 }
 
-// ------------------ FUNÇÕES UNICAS DE SENSORES & ATUADORES ----------------------------- (completa e testada)
+void task_ler_sensores(void *pvParameters){
+    (void) pvParameters;
+
+    for (;;) {
+        aht10_temperatura = aht10_get_temperatura();
+        aht10_umidade = aht10_get_humidade();
+        bh1750_percent = bh1750_get_lux_percent();
+
+        printf("\nLeitura dos sensores:\n"
+            "AHT10 = Temperatura: %0.2f & Umidade: %0.2f\n"
+            "BH1750 = Lux: %0.2f & Percentagem lux: %0.2f\n",
+            aht10_temperatura,
+            aht10_umidade,
+            bh1750_lux,
+            bh1750_percent
+        );
+
+        vTaskDelay(pdMS_TO_TICKS(5000));
+    }
+}
+
+
+
+// ------------------ FUNÇÕES UNICAS DE ATUADORES ----------------------------- (completa e testada)
 
 bool luz_normal(int pino_GPIO, char *acao){
 
@@ -234,6 +245,39 @@ bool luz_normal(int pino_GPIO, char *acao){
         return false;
     }
 }
+
+
+// ------------------ FUNÇÕES UNICAS DE SENSORES ----------------------------- (completa e testada)
+
+float aht10_get_temperatura(){
+    static float temp = 0;
+    static float hum = 0;
+        if (aht10_read(&temp, &hum)) {
+            return temp;
+        }
+    return 0;
+}
+
+float aht10_get_humidade(){
+    static float temp = 0;
+    static float hum = 0;
+        if (aht10_read(&temp, &hum)) {
+            return hum;
+        }
+    return 0;
+}
+
+float bh1750_get_lux_percent(){
+
+    if (bh1750_read_lux(&bh1750_lux)) {
+        bh1750_percent = bh1750_lux_to_percent(bh1750_lux);
+        return bh1750_percent;
+    } else {
+        printf("Erro na leitura do BH1750\n");
+    }
+    return 0;
+}
+
 
 
 // ------------------ FUNÇÕES DE LIMPEZA  ------------------------------------------ (completa e testada)
@@ -284,6 +328,7 @@ void limpeza_dados_entrada(char *buffer){  // func para limpar os dados de entra
 }
 
 // ---------------------FUNÇÕES DE VERIFICAÇÃO E INICIALIZAÇÃO ------------------------------------
+
 int verificar_porta_acao_especifica(char *buffer, char *comando){ // func para verificar no JSON de entrada se tem a porta especificada e retornar ela
     
     if (strstr(buffer, comando) != NULL) {
@@ -355,6 +400,9 @@ void setup_init_i2c1(void)
     gpio_set_function(GPIO_SCL, GPIO_FUNC_I2C);
     gpio_pull_up(GPIO_SDA);
     gpio_pull_up(GPIO_SCL);
+
+    bh1750_init();
+    aht10_init();
 }
 
 void setup_init_uart_custom(void){
@@ -366,6 +414,103 @@ void setup_init_uart_custom(void){
     uart_set_format(UART_ID, 8, 1, UART_PARITY_NONE);
     uart_set_fifo_enabled(UART_ID, true);
 }
+
+void aht10_init() {
+    uint8_t init_cmd[3] = {0xE1, 0x08, 0x00};
+    i2c_write_blocking(I2C_PORT, addr_humidade_temp, init_cmd, 3, false);
+    sleep_ms(20);
+}
+
+bool aht10_read(float *temperature, float *humidity) {
+    uint8_t trigger_cmd[3] = {0xAC, 0x33, 0x00};
+    uint8_t data[6];
+    i2c_write_blocking(I2C_PORT, addr_humidade_temp, trigger_cmd, 3, false);
+    sleep_ms(80);
+    int ret = i2c_read_blocking(I2C_PORT, addr_humidade_temp, data, 6, false);
+    if (ret != 6 || (data[0] & 0x80)) return false;
+
+    uint32_t raw_humi = ((uint32_t)data[1] << 12) | ((uint32_t)data[2] << 4) | (data[3] >> 4);
+    uint32_t raw_temp = (((uint32_t)(data[3] & 0x0F)) << 16) | ((uint32_t)data[4] << 8) | data[5];
+
+    *humidity = ((float)raw_humi / 1048576.0f) * 100.0f;
+    *temperature = ((float)raw_temp / 1048576.0f) * 200.0f - 50.0f;
+    return true;
+}
+
+int calcula_tempo(int tempo, int tipo) {
+    int h = tempo / 3600;
+    int m = (tempo % 3600) / 60;
+    int s = tempo % 60;
+    if (tipo == 0) return h;
+    if (tipo == 1) return m;
+    return s;
+}
+
+bool bh1750_init(void){
+
+    uint8_t cmd;
+    
+    // Power ON
+    cmd = 0x01;
+    if (i2c_write_blocking(I2C_PORT, addr_ldr, &cmd, 1, false) < 0)
+        return false;
+
+    sleep_ms(100);
+
+    // Reset
+    cmd = 0x07;
+    if (i2c_write_blocking(I2C_PORT, addr_ldr, &cmd, 1, false) < 0)
+        return false;
+
+    sleep_ms(100);
+
+    // Modo contínuo de alta resolução
+    cmd = 0x10;
+    if (i2c_write_blocking(I2C_PORT, addr_ldr, &cmd, 1, false) < 0)
+        return false;
+
+    sleep_ms(180); // tempo seguro para primeira leitura
+
+    return true;
+}
+
+bool bh1750_read_raw(uint16_t *raw){
+    uint8_t data[2];
+
+    if (!raw)
+        return false;
+
+    int ret = i2c_read_blocking(I2C_PORT, addr_ldr, data, 2, false);
+    if (ret != 2)
+        return false;
+
+    *raw = ((uint16_t)data[0] << 8) | data[1];
+    return true;
+}
+
+bool bh1750_read_lux(float *lux){
+    uint16_t raw;
+
+    if (!lux)
+        return false;
+
+    if (!bh1750_read_raw(&raw))
+        return false;
+
+    *lux = raw / BH1750_LUX_DIVISOR;
+    return true;
+}
+
+float bh1750_lux_to_percent(float lux){
+    if (lux < 0.0f)
+        lux = 0.0f;
+
+    if (lux > BH1750_MAX_LUX)
+        lux = BH1750_MAX_LUX;
+
+    return (lux / BH1750_MAX_LUX) * 100.0f;
+}
+
 
 // ------------------------------ FUNÇÕES DE ORQUESTRAMENTO E MENSAGERIA -----------------------
 
