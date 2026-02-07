@@ -69,3 +69,5 @@ float aht10_temperatura = 0;
 float bh1750_lux = 0;
 float bh1750_percent = 0;
 
+float vl53lox_distancia = 0;
+

@@ -278,6 +278,49 @@ float bh1750_get_lux_percent(){
     return 0;
 }
 
+bool vl53l0x_read_distance_mm(uint16_t *distance_mm){
+    
+    if (!distance_mm)
+        return false;
+
+    // Start single-shot ranging
+    if (!vl53l0x_write_reg(0x00, 0x01))
+        return false;
+
+    // Tempo REAL de medição (obrigatório)
+    sleep_ms(100);
+
+    // Lê distância (RESULT_RANGE_STATUS + 10)
+    if (!vl53l0x_read_reg16(0x1E, distance_mm))
+        return false;
+
+    // Limpa interrupção interna
+    vl53l0x_write_reg(0x0B, 0x01);
+
+    return true;
+}
+
+float vl53l0x_read_distance_mm_media(){ // sensor funciona bem em distancias entra 2cm ~ 30cm
+
+    uint32_t sum = 0;
+    uint16_t d;
+    uint8_t valid = 0;
+    float ret = 0;
+
+    for (uint8_t i = 0; i < 5; i++) {
+        if (vl53l0x_read_distance_mm(&d)) {
+            sum += d;
+            valid++;
+        }
+        sleep_ms(20);
+    }
+
+    if (valid == 0)
+        return 0;
+
+    ret = sum / valid;
+    return ret;
+}
 
 
 // ------------------ FUNÇÕES DE LIMPEZA  ------------------------------------------ (completa e testada)
@@ -403,6 +446,7 @@ void setup_init_i2c1(void)
 
     bh1750_init();
     aht10_init();
+    vl53l0x_init();
 }
 
 void setup_init_uart_custom(void){
@@ -509,6 +553,48 @@ float bh1750_lux_to_percent(float lux){
         lux = BH1750_MAX_LUX;
 
     return (lux / BH1750_MAX_LUX) * 100.0f;
+}
+
+bool vl53l0x_write_reg(uint8_t reg, uint8_t value) {
+    uint8_t buf[2] = {reg, value};
+    return i2c_write_blocking(I2C_PORT, addr_distancia, buf, 2, false) == 2;
+}
+
+bool vl53l0x_read_reg(uint8_t reg, uint8_t *value) {
+    if (i2c_write_blocking(I2C_PORT, addr_distancia, &reg, 1, true) != 1)
+        return false;
+    return i2c_read_blocking(I2C_PORT, addr_distancia, value, 1, false) == 1;
+}
+
+bool vl53l0x_read_reg16(uint8_t reg, uint16_t *value) {
+    uint8_t buf[2];
+    if (i2c_write_blocking(I2C_PORT, addr_distancia, &reg, 1, true) != 1)
+        return false;
+    if (i2c_read_blocking(I2C_PORT, addr_distancia, buf, 2, false) != 2)
+        return false;
+
+    *value = (buf[0] << 8) | buf[1];
+    return true;
+}
+
+bool vl53l0x_init(void){
+    uint8_t id;
+
+    vl53l0x_write_reg(0x88, 0x00);
+    vl53l0x_write_reg(0x80, 0x01);
+    vl53l0x_write_reg(0xFF, 0x01);
+    vl53l0x_write_reg(0x00, 0x00);
+    vl53l0x_write_reg(0x91, 0x3C);
+    vl53l0x_write_reg(0x00, 0x01);
+    vl53l0x_write_reg(0xFF, 0x00);
+    vl53l0x_write_reg(0x80, 0x00);
+
+    vl53l0x_write_reg(0x01, 0xFF);   
+    vl53l0x_write_reg(0x04, 0x00);   
+    vl53l0x_write_reg(0x05, 0x00);
+
+    sleep_ms(50);
+    return true;
 }
 
 

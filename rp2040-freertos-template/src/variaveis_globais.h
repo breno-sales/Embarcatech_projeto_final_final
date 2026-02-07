@@ -20,6 +20,7 @@
 
 #define BH1750_LUX_DIVISOR       1.2f
 #define BH1750_MAX_LUX           65535.0f
+#define VL53L0X_TIMEOUT_MS 100
 
 
 // ======================= UART ===============================================
@@ -100,6 +101,8 @@ extern float aht10_temperatura;
 
 extern float bh1750_lux;
 extern float bh1750_percent;
+
+extern float vl53lox_distancia;
 
 /* ================= Debug ================= */
 #define DEBUG_printf printf

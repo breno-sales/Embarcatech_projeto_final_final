@@ -74,4 +74,16 @@ float bh1750_lux_to_percent(float lux);
 
 float bh1750_get_lux_percent();
 
+bool vl53l0x_write_reg(uint8_t reg, uint8_t value);
+
+bool vl53l0x_read_reg(uint8_t reg, uint8_t *value);
+
+bool vl53l0x_read_reg16(uint8_t reg, uint16_t *value);
+
+bool vl53l0x_init(void);
+
+bool vl53l0x_read_distance_mm(uint16_t *distance_mm);
+
+float vl53l0x_read_distance_mm_media();
+
 #endif /* FUNCTIONS_H */
