@@ -138,3 +138,7 @@
 49	218	7922786437391622	src/CMakeFiles/rp2040-freertos-template.dir/main.c.obj	32e928bb26583b27
 59	481	7922786437491191	src/CMakeFiles/rp2040-freertos-template.dir/functions.c.obj	65928aa638c6aa44
 482	882	7922786441713451	src/rp2040-freertos-template.elf	9f3ce6bf5ae51d9a
+47	185	7922847915696869	src/CMakeFiles/rp2040-freertos-template.dir/variaveis_globais.c.obj	454b0ca250b21121
+41	217	7922847915632435	src/CMakeFiles/rp2040-freertos-template.dir/main.c.obj	32e928bb26583b27
+56	496	7922847915776910	src/CMakeFiles/rp2040-freertos-template.dir/functions.c.obj	65928aa638c6aa44
+497	795	7922847920184161	src/rp2040-freertos-template.elf	9f3ce6bf5ae51d9a
