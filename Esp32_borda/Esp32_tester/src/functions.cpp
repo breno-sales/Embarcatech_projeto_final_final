@@ -32,6 +32,33 @@ void uart_send_buffer(const char *buffer) {
     Serial2.write((uint8_t *)buffer, len);
 }
 
+void uart_received_buffer(void) {
+
+    static char buffer[256];
+    static int cont = 0;
+
+    while (Serial2.available()) {
+
+        char c = Serial2.read();
+        Serial.print(c);   // eco no USB
+
+        if (cont < sizeof(buffer) - 1 && c != ' ' && c != '\0' && c != '\r' && c != '\n') {
+            buffer[cont++] = c;
+        }
+
+        // fim da mensagem
+        if (c == '}') {
+            buffer[cont] = '\0';
+
+            Serial.printf("\nmsg completa: %s\n", buffer);
+            
+            // reset para próxima mensagem
+            cont = 0;
+            memset(buffer, 0, sizeof(buffer));
+        }
+    }
+}
+
 // ================================= FUNÇOES DE ATUADORES =====================================
 
 bool lampada_simples(int pin, char *acao){
@@ -87,7 +114,8 @@ void iniciando_wifi(void){
 }
 
 void execucao_wifi_em_loop(void){
-        WiFiClient client = server.available(); // verifica conexão
+    WiFiClient client = server.available(); // verifica conexão
+    static bool client_conectado = true;
 
     if (client) {
         Serial.println("Cliente conectado");
@@ -110,6 +138,8 @@ void execucao_wifi_em_loop(void){
                 uart_send_buffer(buffer);
 
                 client.print("\n\nMensagem completa recebida\n");
+
+
                 
             }
 

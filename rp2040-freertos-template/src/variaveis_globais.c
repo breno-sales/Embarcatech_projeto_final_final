@@ -1,12 +1,26 @@
 #include "variaveis_globais.h"
+#include "ssd1306.h"
 
-/* ================= VARIAVEIS DE CONTROLE ================= */
+/* ============================================================
+ *                  VARIÁVEIS DE CONTROLE
+ * ============================================================ */
 
 bool exibir_OLED = false;
 bool enviar_dados_UART = false;
 
+ssd1306_t disp;
+
+/* ============================================================
+ *                  JSON – ESTRUTURAS
+ * ============================================================ */
+
 m_json_char json_char;
-m_json_int json_int;
+m_json_int  json_int;
+
+/* ============================================================
+ *                  DICIONÁRIOS
+ * ============================================================ */
+
 const dict_chave_valor dict_remetente_destinatario[5] = {
     {"servidor", 1},
     {"master_central", 2},
@@ -23,51 +37,60 @@ const dict_chave_valor dict_acao[4] = {
 };
 
 const dict_chave_valor dict_tipo_sensor[2] = {
-    {"analogico",1},
-    {"digital", 2}
+    {"analogico", 1},
+    {"digital",  2}
 };
 
 const dict_chave_valor dict_nome_sensor[3] = {
     {"lampada_simples", 1},
-    {"led", 2},
-    {"ventilador", 3}
+    {"led",             2},
+    {"ventilador",      3}
 };
 
 const dict_chave_valor dict_retorno[2] = {
-    {"success",1},
-    {"falha", 2}
+    {"success", 1},
+    {"falha",   2}
 };
 
-const size_t n_dict_remetente_destinatario = sizeof(dict_remetente_destinatario) / sizeof(dict_remetente_destinatario[0]);
-const size_t n_dict_acao = sizeof(dict_acao) / sizeof(dict_acao[0]);
-const size_t n_dict_tipo_sensor = sizeof(dict_tipo_sensor) / sizeof(dict_tipo_sensor[0]);
-const size_t n_dict_nome_sensor = sizeof(dict_nome_sensor) / sizeof(dict_nome_sensor[0]);
-const size_t n_dict_retorno = sizeof(dict_retorno) / sizeof(dict_retorno[0]);
+const size_t n_dict_remetente_destinatario =
+    sizeof(dict_remetente_destinatario) / sizeof(dict_remetente_destinatario[0]);
 
+const size_t n_dict_acao =
+    sizeof(dict_acao) / sizeof(dict_acao[0]);
 
-/* ================= JSON ================= */
+const size_t n_dict_tipo_sensor =
+    sizeof(dict_tipo_sensor) / sizeof(dict_tipo_sensor[0]);
+
+const size_t n_dict_nome_sensor =
+    sizeof(dict_nome_sensor) / sizeof(dict_nome_sensor[0]);
+
+const size_t n_dict_retorno =
+    sizeof(dict_retorno) / sizeof(dict_retorno[0]);
+
+/* ============================================================
+ *                  JSON – PARSING
+ * ============================================================ */
+
 int idx = 0;
-int c = 0;
+int c   = 0;
+
 char buffer[Max_buffer_size] = "\0";
 
-char *json_remetente     = "\"remetente\":";
-char *json_destinatario  = "\"destinatario\":";
-char *json_gpio_pino     = "\"gpio\":";
-char *json_tipo_sensor   = "\"tipo_sensor\":";
-char *json_nome_sensor   = "\"nome_sensor\":";
-char *json_acao          = "\"acao\":";
+char *json_remetente    = "\"remetente\":";
+char *json_destinatario = "\"destinatario\":";
+char *json_gpio_pino    = "\"gpio\":";
+char *json_tipo_sensor  = "\"tipo_sensor\":";
+char *json_nome_sensor  = "\"nome_sensor\":";
+char *json_acao         = "\"acao\":";
 
+/* ============================================================
+ *                  SENSORES – VARIÁVEIS
+ * ============================================================ */
 
-/* ================= OLED ================= */
+float aht10_umidade     = 0.0f;
+float aht10_temperatura = 0.0f;
 
+float bh1750_lux     = 0.0f;
+float bh1750_percent = 0.0f;
 
-// ==================== SENSORES ========================
-
-float aht10_umidade = 0;
-float aht10_temperatura = 0;
-
-float bh1750_lux = 0;
-float bh1750_percent = 0;
-
-float vl53lox_distancia = 0;
-
+float vl53lox_distancia = 0.0f;

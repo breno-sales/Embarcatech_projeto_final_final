@@ -10,7 +10,7 @@
 #include "functions.h"
 #include "hardware/uart.h"
 
-// ------------------ FUNÇÕES TASK  ----------------------------- (completa e testada)
+// ------------------ FUNÇÕES TASK  ----------------------------- 
 
 void task_leitura_serial_receiver(void *pvParameters) {
 
@@ -42,72 +42,10 @@ void task_leitura_serial_receiver(void *pvParameters) {
         /* ================= PROCESSAMENTO ================= */
         if (idx > 0) {
 
-            limpeza_dados_entrada(buffer);
+            popular_campos(buffer);
 
-            printf("\nComando recebido: %s\n\n", buffer);
-            
-            verificar_dado_em_json_especifico(buffer, json_remetente, json_char.resp_remetente);
-            verificar_dado_em_json_especifico(buffer, json_destinatario, json_char.resp_destinatario);
-            verificar_dado_em_json_especifico(buffer, json_tipo_sensor, json_char.resp_tipo_sensor);
-            verificar_dado_em_json_especifico(buffer, json_nome_sensor, json_char.resp_nome_sensor);
-            verificar_dado_em_json_especifico(buffer, json_acao, json_char.resp_acao);
-            verificar_dado_em_json_especifico(buffer, json_gpio_pino, json_char.resp_gpio_pino);
-            json_int.resp_gpio_pino = verificar_porta_acao_especifica(buffer, json_gpio_pino);
+            orquestrador_funcionalidades(&json_char, &json_int);
 
-            retorno_requisicao_json("master_central", &json_char);
-
-            // ----------------------------print das variaveis para acompanhamento------------------
-            printf(
-                "\n\nJSON_CHAR:\n"
-                "remetente: %s\n"
-                "destinatario: %s\n"
-                "tipo sensor: %s\n"
-                "nome sensor: %s\n"
-                "acao: %s\n"
-                "GPIO: %s\n"
-                "Retorno: %s\n",
-                json_char.resp_remetente,
-                json_char.resp_destinatario,
-                json_char.resp_tipo_sensor,
-                json_char.resp_nome_sensor,
-                json_char.resp_acao,
-                json_char.resp_gpio_pino,
-                json_char.resp_retorno
-            );
-            
-            montagem_estrutura_de_envio(&json_char, &json_int);
-
-            printf(
-                "\n\nJSON_INT:\n"
-                "remetente: %i\n"
-                "destinatario: %i\n"
-                "tipo sensor: %i\n"
-                "nome sensor: %i\n"
-                "acao: %i\n"
-                "GPIO: %i\n"
-                "Retorno: %i\n",
-                json_int.resp_remetente,
-                json_int.resp_destinatario,
-                json_int.resp_tipo_sensor,
-                json_int.resp_nome_sensor,
-                json_int.resp_acao,
-                json_int.resp_gpio_pino,
-                json_int.resp_retorno
-            );
-
-            //-----------------------------------------------------------------------         
-
-
-            if(strstr(json_char.resp_retorno,"success")){
-                resp_orquestrador = orquestrador_funcionalidades(&json_char, &json_int);
-                if(resp_orquestrador){
-                    // chamar função de enviar retorno
-                    printf("\nMensagem de envio de retorno\n");
-                } else {
-                    // chamar funcao de enviar retorno com erro especifico
-                    printf("\nMensagem de envio de retorno com erro especifico\n");
-                }
-            }
             exibir_OLED = true;
         }
 
@@ -120,7 +58,9 @@ void task_leitura_uart_receiver(void *pvParameters) {
     for (;;) {
 
         // só chama quando houver algo na UART
+        printf("esta rodando\n");
         if (uart_is_readable(UART_ID)) {
+            printf("recebeu algo\n");
             receber_mensagem_uart();
         }
 
@@ -134,10 +74,6 @@ void task_exibir_infos_OLED(void *pvParameters){
     while (1) {
         if (exibir_OLED) {
 
-            ssd1306_t disp;
-            disp.external_vcc = false;
-
-            ssd1306_init(&disp, 128, 64, 0x3C, i2c1);
             ssd1306_clear(&disp);
 
             char remetente[128] = "  > ";
@@ -207,14 +143,17 @@ void task_ler_sensores(void *pvParameters){
         aht10_temperatura = aht10_get_temperatura();
         aht10_umidade = aht10_get_humidade();
         bh1750_percent = bh1750_get_lux_percent();
+        vl53lox_distancia = vl53l0x_read_distance_mm_media();
 
         printf("\nLeitura dos sensores:\n"
-            "AHT10 = Temperatura: %0.2f & Umidade: %0.2f\n"
-            "BH1750 = Lux: %0.2f & Percentagem lux: %0.2f\n",
+            "AHT10 = Temperatura: %0.2fºC & Umidade: %0.2f%%\n"
+            "BH1750 = Lux: %0.2f & Percentagem lux: %0.2f%%\n"
+            "VL53LOX = Distancia media: %fmm (milimetros)\n",
             aht10_temperatura,
             aht10_umidade,
             bh1750_lux,
-            bh1750_percent
+            bh1750_percent,
+            vl53lox_distancia
         );
 
         vTaskDelay(pdMS_TO_TICKS(5000));
@@ -323,7 +262,7 @@ float vl53l0x_read_distance_mm_media(){ // sensor funciona bem em distancias ent
 }
 
 
-// ------------------ FUNÇÕES DE LIMPEZA  ------------------------------------------ (completa e testada)
+// ------------------ FUNÇÕES DE LIMPEZA & populacao ------------------------------------------ (completa e testada)
 
 void limpar_m_json_char(m_json_char *json_c)
 {
@@ -368,6 +307,62 @@ void limpeza_dados_entrada(char *buffer){  // func para limpar os dados de entra
     dest_final[cont] = '\0';
 
     strcpy(buffer, dest_final);
+}
+
+void popular_campos(char* buffer){
+
+    limpeza_dados_entrada(buffer);
+
+    printf("\nComando recebido: %s\n\n", buffer);
+    
+    verificar_dado_em_json_especifico(buffer, json_remetente, json_char.resp_remetente);
+    verificar_dado_em_json_especifico(buffer, json_destinatario, json_char.resp_destinatario);
+    verificar_dado_em_json_especifico(buffer, json_tipo_sensor, json_char.resp_tipo_sensor);
+    verificar_dado_em_json_especifico(buffer, json_nome_sensor, json_char.resp_nome_sensor);
+    verificar_dado_em_json_especifico(buffer, json_acao, json_char.resp_acao);
+    verificar_dado_em_json_especifico(buffer, json_gpio_pino, json_char.resp_gpio_pino);
+    json_int.resp_gpio_pino = verificar_porta_acao_especifica(buffer, json_gpio_pino);
+
+    retorno_requisicao_json("master_central", &json_char);
+
+    // ----------------------------print das variaveis para acompanhamento------------------
+    printf(
+        "\n\nJSON_CHAR:\n"
+        "remetente: %s\n"
+        "destinatario: %s\n"
+        "tipo sensor: %s\n"
+        "nome sensor: %s\n"
+        "acao: %s\n"
+        "GPIO: %s\n"
+        "Retorno: %s\n",
+        json_char.resp_remetente,
+        json_char.resp_destinatario,
+        json_char.resp_tipo_sensor,
+        json_char.resp_nome_sensor,
+        json_char.resp_acao,
+        json_char.resp_gpio_pino,
+        json_char.resp_retorno
+    );
+    
+    montagem_estrutura_de_envio(&json_char, &json_int);
+
+    printf(
+        "\n\nJSON_INT:\n"
+        "remetente: %i\n"
+        "destinatario: %i\n"
+        "tipo sensor: %i\n"
+        "nome sensor: %i\n"
+        "acao: %i\n"
+        "GPIO: %i\n"
+        "Retorno: %i\n",
+        json_int.resp_remetente,
+        json_int.resp_destinatario,
+        json_int.resp_tipo_sensor,
+        json_int.resp_nome_sensor,
+        json_int.resp_acao,
+        json_int.resp_gpio_pino,
+        json_int.resp_retorno
+    );
 }
 
 // ---------------------FUNÇÕES DE VERIFICAÇÃO E INICIALIZAÇÃO ------------------------------------
@@ -435,15 +430,29 @@ bool verificar_dado_em_json_especifico(char *buffer, char *comando, char *saida)
     }
 }
 
-void setup_init_i2c1(void) 
-{
+void setup_init_i2c1(void){
+    i2c_init(I2C1_PORT_OLED, 400000);
+    gpio_set_function(SDA_OLED, GPIO_FUNC_I2C);
+    gpio_set_function(SCL_OLED, GPIO_FUNC_I2C);
+    gpio_pull_up(SDA_OLED);
+    gpio_pull_up(SCL_OLED);
 
-    i2c_init(I2C_PORT, 100 * 1000);
+    disp.external_vcc = false;
+
+    ssd1306_init(&disp, 128, 64, addr_OLED, I2C1_PORT_OLED);
+    ssd1306_clear(&disp);
+    ssd1306_show(&disp);
+
+}
+
+void setup_init_i2c0(void) {
+
+    i2c_init(I2C0_PORT, 400000);
     gpio_set_function(GPIO_SDA, GPIO_FUNC_I2C);
     gpio_set_function(GPIO_SCL, GPIO_FUNC_I2C);
     gpio_pull_up(GPIO_SDA);
     gpio_pull_up(GPIO_SCL);
-
+    
     bh1750_init();
     aht10_init();
     vl53l0x_init();
@@ -461,16 +470,16 @@ void setup_init_uart_custom(void){
 
 void aht10_init() {
     uint8_t init_cmd[3] = {0xE1, 0x08, 0x00};
-    i2c_write_blocking(I2C_PORT, addr_humidade_temp, init_cmd, 3, false);
+    i2c_write_blocking(I2C0_PORT, addr_humidade_temp, init_cmd, 3, false);
     sleep_ms(20);
 }
 
 bool aht10_read(float *temperature, float *humidity) {
     uint8_t trigger_cmd[3] = {0xAC, 0x33, 0x00};
     uint8_t data[6];
-    i2c_write_blocking(I2C_PORT, addr_humidade_temp, trigger_cmd, 3, false);
+    i2c_write_blocking(I2C0_PORT, addr_humidade_temp, trigger_cmd, 3, false);
     sleep_ms(80);
-    int ret = i2c_read_blocking(I2C_PORT, addr_humidade_temp, data, 6, false);
+    int ret = i2c_read_blocking(I2C0_PORT, addr_humidade_temp, data, 6, false);
     if (ret != 6 || (data[0] & 0x80)) return false;
 
     uint32_t raw_humi = ((uint32_t)data[1] << 12) | ((uint32_t)data[2] << 4) | (data[3] >> 4);
@@ -496,21 +505,21 @@ bool bh1750_init(void){
     
     // Power ON
     cmd = 0x01;
-    if (i2c_write_blocking(I2C_PORT, addr_ldr, &cmd, 1, false) < 0)
+    if (i2c_write_blocking(I2C0_PORT, addr_ldr, &cmd, 1, false) < 0)
         return false;
 
     sleep_ms(100);
 
     // Reset
     cmd = 0x07;
-    if (i2c_write_blocking(I2C_PORT, addr_ldr, &cmd, 1, false) < 0)
+    if (i2c_write_blocking(I2C0_PORT, addr_ldr, &cmd, 1, false) < 0)
         return false;
 
     sleep_ms(100);
 
     // Modo contínuo de alta resolução
     cmd = 0x10;
-    if (i2c_write_blocking(I2C_PORT, addr_ldr, &cmd, 1, false) < 0)
+    if (i2c_write_blocking(I2C0_PORT, addr_ldr, &cmd, 1, false) < 0)
         return false;
 
     sleep_ms(180); // tempo seguro para primeira leitura
@@ -524,7 +533,7 @@ bool bh1750_read_raw(uint16_t *raw){
     if (!raw)
         return false;
 
-    int ret = i2c_read_blocking(I2C_PORT, addr_ldr, data, 2, false);
+    int ret = i2c_read_blocking(I2C0_PORT, addr_ldr, data, 2, false);
     if (ret != 2)
         return false;
 
@@ -557,20 +566,20 @@ float bh1750_lux_to_percent(float lux){
 
 bool vl53l0x_write_reg(uint8_t reg, uint8_t value) {
     uint8_t buf[2] = {reg, value};
-    return i2c_write_blocking(I2C_PORT, addr_distancia, buf, 2, false) == 2;
+    return i2c_write_blocking(I2C0_PORT, addr_distancia, buf, 2, false) == 2;
 }
 
 bool vl53l0x_read_reg(uint8_t reg, uint8_t *value) {
-    if (i2c_write_blocking(I2C_PORT, addr_distancia, &reg, 1, true) != 1)
+    if (i2c_write_blocking(I2C0_PORT, addr_distancia, &reg, 1, true) != 1)
         return false;
-    return i2c_read_blocking(I2C_PORT, addr_distancia, value, 1, false) == 1;
+    return i2c_read_blocking(I2C0_PORT, addr_distancia, value, 1, false) == 1;
 }
 
 bool vl53l0x_read_reg16(uint8_t reg, uint16_t *value) {
     uint8_t buf[2];
-    if (i2c_write_blocking(I2C_PORT, addr_distancia, &reg, 1, true) != 1)
+    if (i2c_write_blocking(I2C0_PORT, addr_distancia, &reg, 1, true) != 1)
         return false;
-    if (i2c_read_blocking(I2C_PORT, addr_distancia, buf, 2, false) != 2)
+    if (i2c_read_blocking(I2C0_PORT, addr_distancia, buf, 2, false) != 2)
         return false;
 
     *value = (buf[0] << 8) | buf[1];
@@ -600,20 +609,24 @@ bool vl53l0x_init(void){
 
 // ------------------------------ FUNÇÕES DE ORQUESTRAMENTO E MENSAGERIA -----------------------
 
-bool orquestrador_funcionalidades(m_json_char *json_c , m_json_int *json_i){
+void orquestrador_funcionalidades(m_json_char *json_c , m_json_int *json_i){
 
     static bool retorno = false;
 
-    if(strstr(json_c->resp_nome_sensor, "luz_simples") != NULL || strstr(json_c->resp_nome_sensor, "led") != NULL){
-        retorno = luz_normal(json_i->resp_gpio_pino, json_c->resp_acao);      
-    } 
+    if(strstr(json_char.resp_retorno,"success")){
 
-    if(retorno){
-        printf("\nOrquestrador: tudo certo!\n");
-    } else {
-        printf("\nOrquestrador: Algo deu errado!\n");
+        if(strstr(json_c->resp_nome_sensor, "luz_simples") != NULL || strstr(json_c->resp_nome_sensor, "led") != NULL){
+            retorno = luz_normal(json_i->resp_gpio_pino, json_c->resp_acao);      
+        } 
+
+        if(retorno){
+            printf("\nOrquestrador: tudo certo!\n");
+            printf("\nMensagem de envio de retorno\n");
+        } else {
+            printf("\nOrquestrador: Algo deu errado!\n");
+            printf("\nMensagem de envio de retorno com erro especifico\n");
+        }
     }
-    return retorno;
 
 }
 
@@ -817,6 +830,7 @@ void uart_read_exact(uart_inst_t *uart, uint8_t *buf, size_t len) {
     while (received < len) {
         if (uart_is_readable(uart)) {
             buf[received++] = uart_getc(uart);
+            printf("aqui> %c",buf[received-1]);
         } else {
             tight_loop_contents(); // evita busy-wait agressivo
         }
@@ -901,8 +915,6 @@ void receber_mensagem_uart(void) {
     exibir_OLED = true;
 }
 
-
-
 // ------------------ FUNÇÕES DE TESTE  ------------------------------------------
 
 void ler_endereco_i2c(){
@@ -913,7 +925,7 @@ void ler_endereco_i2c(){
 
         for (uint8_t addr = 0x08; addr <= 0x77; addr++) {
             int ret = i2c_write_blocking(
-                I2C_PORT,
+                I2C0_PORT,
                 addr,
                 &dummy,
                 1,
@@ -921,7 +933,21 @@ void ler_endereco_i2c(){
             );
 
             if (ret == 1) {
-                printf("✔ Dispositivo encontrado em: 0x%02X\n", addr);
+                printf("✔ Dispositivo I2C0 encontrado em: 0x%02X\n", addr);
+            }
+        }
+
+        for (uint8_t addr = 0x08; addr <= 0x77; addr++) {
+            int ret = i2c_write_blocking(
+                I2C1_PORT_OLED,
+                addr,
+                &dummy,
+                1,
+                false
+            );
+
+            if (ret == 1) {
+                printf("✔ Dispositivo I2C1 encontrado em: 0x%02X\n", addr);
             }
         }
 
