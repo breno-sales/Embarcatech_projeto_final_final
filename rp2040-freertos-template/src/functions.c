@@ -53,7 +53,7 @@ void task_leitura_serial_receiver(void *pvParameters) {
     }
 }
 
-void task_leitura_uart_receiver(void *pvParameters) {
+void task_uart_receiver(void *pvParameters) {
 
     for (;;) {
 
@@ -126,13 +126,23 @@ void task_exibir_infos_OLED(void *pvParameters){
     }
 }
 
-void task_uart_transmitir(void *pvParameters){ // ENVIAR DADOS DE RETORNO DE JSON_CHAR para UART
-    
-    if(enviar_dados_UART){
-        uart_puts(UART_ID,json_char.resp_retorno);
-        printf("\nmsg enviada pela UART: %s\n",json_char.resp_retorno);
+void task_uart_transmitir(void *pvParameters){
+    (void) pvParameters;
 
-        enviar_dados_UART = false;
+    for (;;) {
+
+        if (enviar_dados_UART) {
+
+            uart_puts(UART_ID, json_char.resp_retorno);
+            uart_puts(UART_ID, "\n");
+
+            printf("\nmsg enviada pela UART: %s\n", json_char.resp_retorno);
+
+            enviar_dados_UART = false;
+        }
+
+        // evita busy-wait e libera CPU
+        vTaskDelay(pdMS_TO_TICKS(100));
     }
 }
 
@@ -622,11 +632,14 @@ void orquestrador_funcionalidades(m_json_char *json_c , m_json_int *json_i){
         if(retorno){
             printf("\nOrquestrador: tudo certo!\n");
             printf("\nMensagem de envio de retorno\n");
+            
         } else {
             printf("\nOrquestrador: Algo deu errado!\n");
             printf("\nMensagem de envio de retorno com erro especifico\n");
-        }
+        } 
     }
+    
+    enviar_dados_UART = true;
 
 }
 

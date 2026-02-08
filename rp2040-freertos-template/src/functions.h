@@ -17,7 +17,7 @@
  * ============================================================ */
 
 void task_leitura_serial_receiver(void *pvParameters);
-void task_leitura_uart_receiver(void *pvParameters);
+void task_uart_receiver(void *pvParameters);
 void task_exibir_infos_OLED(void *pvParameters);
 void task_uart_transmitir(void *pvParameters);
 void task_ler_sensores(void *pvParameters);

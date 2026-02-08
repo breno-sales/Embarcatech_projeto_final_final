@@ -127,3 +127,14 @@
 480	859	7922473212626452	src/rp2040-freertos-template.elf	9f3ce6bf5ae51d9a
 33	455	7922476892400456	src/CMakeFiles/rp2040-freertos-template.dir/functions.c.obj	65928aa638c6aa44
 456	748	7922476896634859	src/rp2040-freertos-template.elf	9f3ce6bf5ae51d9a
+88	1522	7922734070817088	src/CMakeFiles/rp2040-freertos-template.dir/main.c.obj	32e928bb26583b27
+1524	3204	7922734085166603	src/rp2040-freertos-template.elf	9f3ce6bf5ae51d9a
+41	540	7922764655797365	src/CMakeFiles/rp2040-freertos-template.dir/functions.c.obj	65928aa638c6aa44
+31	187	7922767367893341	src/CMakeFiles/rp2040-freertos-template.dir/main.c.obj	32e928bb26583b27
+37	456	7922767367957921	src/CMakeFiles/rp2040-freertos-template.dir/functions.c.obj	65928aa638c6aa44
+457	849	7922767372152528	src/rp2040-freertos-template.elf	9f3ce6bf5ae51d9a
+35	523	7922768300540054	src/CMakeFiles/rp2040-freertos-template.dir/functions.c.obj	65928aa638c6aa44
+524	874	7922768305430229	src/rp2040-freertos-template.elf	9f3ce6bf5ae51d9a
+49	218	7922786437391622	src/CMakeFiles/rp2040-freertos-template.dir/main.c.obj	32e928bb26583b27
+59	481	7922786437491191	src/CMakeFiles/rp2040-freertos-template.dir/functions.c.obj	65928aa638c6aa44
+482	882	7922786441713451	src/rp2040-freertos-template.elf	9f3ce6bf5ae51d9a

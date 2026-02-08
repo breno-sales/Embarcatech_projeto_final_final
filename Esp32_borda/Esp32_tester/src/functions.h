@@ -7,7 +7,7 @@ bool lampada_simples(int pin, char *acao);
 
 void uart_send_buffer(const char *buffer);
 
-void uart_received_buffer(void);
+bool uart_received_buffer(char *out_buffer, size_t max_len);
 
 
 void iniciando_wifi(void);

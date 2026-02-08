@@ -7,6 +7,8 @@
 #define TCP_PORT 500
 #define Max_buffer_size 2048
 
+#define max_len_msg 256
 
+extern char msg[max_len_msg];
 
 

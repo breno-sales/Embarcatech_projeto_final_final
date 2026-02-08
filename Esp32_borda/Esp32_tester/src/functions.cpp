@@ -32,7 +32,7 @@ void uart_send_buffer(const char *buffer) {
     Serial2.write((uint8_t *)buffer, len);
 }
 
-void uart_received_buffer(void) {
+bool uart_received_buffer(char *out_buffer, size_t max_len) {
 
     static char buffer[256];
     static int cont = 0;
@@ -40,24 +40,31 @@ void uart_received_buffer(void) {
     while (Serial2.available()) {
 
         char c = Serial2.read();
-        Serial.print(c);   // eco no USB
+        Serial.print(c);
 
-        if (cont < sizeof(buffer) - 1 && c != ' ' && c != '\0' && c != '\r' && c != '\n') {
+        if (cont < sizeof(buffer) - 1 &&
+            c != ' ' && c != '\0' && c != '\r' && c != '\n') {
             buffer[cont++] = c;
         }
 
-        // fim da mensagem
         if (c == '}') {
             buffer[cont] = '\0';
 
-            Serial.printf("\nmsg completa: %s\n", buffer);
-            
-            // reset para próxima mensagem
+            limpeza_dados_entrada(buffer);
+
+            strncpy(out_buffer, buffer, max_len - 1);
+            out_buffer[max_len - 1] = '\0';
+
             cont = 0;
             memset(buffer, 0, sizeof(buffer));
+
+            return true;   
         }
     }
+
+    return false;        
 }
+
 
 // ================================= FUNÇOES DE ATUADORES =====================================
 
@@ -137,10 +144,13 @@ void execucao_wifi_em_loop(void){
 
                 uart_send_buffer(buffer);
 
-                client.print("\n\nMensagem completa recebida\n");
+                client.print("\n{\"Status_code\":200,\"Text\":\"Mensagem completa recebida\"\n");
+      
+            }
+            if (uart_received_buffer(msg, sizeof(msg))) {
+                Serial.printf("\nMensagem enviada TCP: %s\n", msg);
+                client.printf("\n%s\n",msg);
 
-
-                
             }
 
             delay(10);
